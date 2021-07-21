@@ -1,9 +1,36 @@
-import * as functions from "firebase-functions";
+import {functions, db} from "./plugins/firebase";
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+// 平日9時に保存モードを開始する
+export const startSaveModeCron = functions.pubsub.schedule("0 9 * * 1-5")
+    .timeZone("Asia/Tokyo")
+    .onRun(async () => {
+      const batch = db.batch();
+
+      const col = db.collection("devices");
+      const idList = [
+        "0881269a1ac6746f", // エレベーター左
+        "d742f58d5e3c5ef7", // エレベーター右
+        "4f3b8bb564a3203c", // 9F
+      ];
+      idList.forEach((id) => {
+        const ref = col.doc(id);
+        batch.set(ref, {isSave: true}, {merge: true});
+      });
+
+      await batch.commit();
+    });
+
+// 平日18時に保存モードを終了する
+export const stopSaveModeCron = functions.pubsub.schedule("0 18 * * 1-5")
+    .timeZone("Asia/Tokyo")
+    .onRun(async () => {
+      const batch = db.batch();
+
+      const col = db.collection("devices");
+      const snapshots = await col.get();
+      snapshots.docs.map((doc) => {
+        batch.set(doc.ref, {isSave: false}, {merge: true});
+      });
+
+      await batch.commit();
+    });
