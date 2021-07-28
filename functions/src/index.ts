@@ -9,7 +9,7 @@ export const startSaveModeCron = functions.pubsub.schedule("0 9 * * 1-5")
       const col = db.collection("devices");
       const idList = [
         "0881269a1ac6746f", // エレベーター左
-        "d742f58d5e3c5ef7", // エレベーター右
+        "6e90dd68ec031ce1", // エレベーター右
         "4f3b8bb564a3203c", // 9F
       ];
       idList.forEach((id) => {
